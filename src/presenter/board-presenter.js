@@ -4,6 +4,8 @@ import NoPointsView from '../view/no-points-view';
 import {RenderPosition, render } from '../framework/render.js';
 import TripPointPresenter from './tripPoint-presenter';
 import TripPointListView from '../view/trip-point-list-view';
+import { SortType } from '../mock/const';
+import { sortPointsByDate, sortPointsByPrice } from '../utils/sorts';
 
 export default class BoardPresenter {
   #boardContainer = null;
@@ -14,7 +16,8 @@ export default class BoardPresenter {
   #noTripPointComponent = new NoPointsView();
   #sortComponent = new SortView();
   #tripPointPresenter = new Map();
-
+  #currentSortType = SortType.DAY;
+  #sourcedTripPoints = [];
 
   constructor({boardContainer, tripPointsModel}) {
     this.#boardContainer = boardContainer;
@@ -24,10 +27,12 @@ export default class BoardPresenter {
   init() {
     this.#tripPoints = [...this.#tripPointsModel.tripPoints];
     this.#renderBoard();
+    this.#sourcedTripPoints = [...this.#tripPointsModel.tripPoints];
   }
 
   #renderSort() {
     render(this.#sortComponent, this.#boardContainer, RenderPosition.AFTERBEGIN);
+    this.#sortComponent.setSortTypeChangeHandler(this.#handleSortTypeChange);
   }
 
   #renderNoTripPoints() {
@@ -38,6 +43,29 @@ export default class BoardPresenter {
     this.#tripPointPresenter.forEach((presenter) => presenter.resetView());
   };
 
+  #sortTripPoints(sortType) {
+    switch (sortType) {
+      case SortType.PRICE:
+        this.#tripPoints.sort(sortPointsByPrice);
+        break;
+      case SortType.TIME:
+        this.#tripPoints.sort(sortPointsByDate);
+        break;
+      default:
+        this.#tripPoints = [...this.#sourcedTripPoints];
+    }
+    this.#currentSortType = sortType;
+  }
+
+  #handleSortTypeChange = (sortType) => {
+    if (this.#currentSortType === sortType) {
+      return;
+    }
+
+    this.#sortTripPoints(sortType);
+    this.#clearTripPointList();
+    this.#renderTripPointsList();
+  };
 
   #renderTripPoint(tripPoint) {
     const tripPoinPresenter = new TripPointPresenter({
