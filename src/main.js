@@ -10,7 +10,7 @@ import {render} from './framework/render.js';
 import NewTripPointButtonView from './view/new-trip-point-button-view.js';
 
 
-const pageContainer = document.querySelector('.trip-events');
+const boardContainer = document.querySelector('.trip-events');
 const siteFilterElement = document.querySelector('.trip-controls__filters');
 const siteHeaderElement = document.querySelector('.trip-main');
 
@@ -21,8 +21,18 @@ const destinationsModel = new DestinationsModel(destinations);
 const offersModel = new OffersModel(offersByType);
 const filterModel = new FilterModel();
 
-const boardPresenter = new BoardPresenter({boardContainer: pageContainer,
-  tripPointsModel, destinationsModel, offersModel, filterModel, onNewTripPointDestroy: handleNewTripPointFormClose});
+const newTripPointButtonComponent = new NewTripPointButtonView({
+  onClick: handleNewTripPointButtonClick
+});
+
+const boardPresenter = new BoardPresenter({
+  boardContainer,
+  tripPointsModel,
+  destinationsModel,
+  offersModel,
+  filterModel,
+  onNewTripPointDestroy
+});
 
 const filterPresenter = new FilterPresenter({
   filterContainer: siteFilterElement,
@@ -30,17 +40,14 @@ const filterPresenter = new FilterPresenter({
   tripPointsModel
 });
 
-const newTripPointButtonComponent = new NewTripPointButtonView({
-  onClick: handleNewTripPointButtonClick
-});
-
-function handleNewTripPointFormClose() {
-  newTripPointButtonComponent.element.disabled = false;
-}
 
 function handleNewTripPointButtonClick() {
   boardPresenter.createTripPoint();
   newTripPointButtonComponent.element.disabled = true;
+}
+
+function onNewTripPointDestroy() {
+  newTripPointButtonComponent.element.disabled = false;
 }
 
 render(newTripPointButtonComponent, siteHeaderElement);
